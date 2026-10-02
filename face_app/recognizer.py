@@ -5,6 +5,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import torch
 from ultralytics import YOLO
 
 # Important:
@@ -42,6 +43,15 @@ class FaceRecognizer:
 
         # Load the local YOLO face model only once.
         self._detector = self._load_detector()
+
+        # DeepFace caches this client and reuses it in represent(). Move both
+        # the model and its input-device field, so CPU mode is respected even
+        # on a machine with CUDA and both pipeline stages use the same device.
+        self._embedding_model = DeepFace.build_model(self._config.face_model)
+        self._embedding_model.device = torch.device(self._config.yolo_device)
+        self._embedding_model.model.to(self._embedding_model.device)
+        self._embedding_model.model.eval()
+        LOGGER.info("%s embedding device: %s", self._config.face_model, self._embedding_model.device)
 
     # =========================================================
     # Public API

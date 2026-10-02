@@ -1,4 +1,5 @@
 ultralytics
+# deepface[pytorch]==0.0.101
 deepface
 opencv-python
 numpy
